@@ -1,0 +1,34 @@
+#!/usr/bin/env python3
+
+from flask import Flask
+from flask import request
+from flask_restful import Resource, Api
+import datetime
+
+# {"user": timestamp}
+users = {}
+
+app = Flask(__name__)
+api = Api(app)
+
+current_string = "this is a string"
+
+class TyperacerGetCurrentString(Resource):
+    def get(self):
+        user = request.args.get('user', '')
+        if user in users:
+            return {'current_string': 'no thanks'}
+        users[user] = datetime.datetime.now()
+        print(users)
+        return {'current_string': current_string}
+
+class TyperacerCheckString(Resource):
+    def put(self):
+        submission = request.form['submission']
+        return {'success': False}
+
+api.add_resource(TyperacerGetCurrentString, '/current-string')
+api.add_resource(TyperacerCheckString, '/check-string')
+
+if __name__ == '__main__':
+    app.run(debug=True)
