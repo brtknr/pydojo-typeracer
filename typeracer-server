@@ -25,6 +25,9 @@ class TyperacerGetCurrentString(Resource):
 class TyperacerCheckString(Resource):
     def put(self):
         submission = request.form['submission']
+        print(submission)
+        if submission == current_string:
+            return {'success': True}
         return {'success': False}
 
 api.add_resource(TyperacerGetCurrentString, '/current-string')
