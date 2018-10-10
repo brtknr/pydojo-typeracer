@@ -13,12 +13,13 @@
   <script> 
       // wait for the DOM to be loaded 
       $(document).ready(function() { 
-        $("#textarea").on('change keyup paste', function() {
-            
+        $("#text_typed").on('change keyup paste', function() {
+            text_typed = $('#text_typed').val()
+
             $.ajax({
-  url: '/echo/html/',
+  url: 'http://localhost:5000/check-string/',
   type: 'PUT',
-  data: "name=John&location=Boston",
+  data: JSON.stringify({'submission': text_typed}),
   success: function(data) {
     alert('Load was performed.');
   }
@@ -38,7 +39,7 @@
         <br /><input type="submit" value="Submit Comment" />
     </form>
     <h2>Type text here</h2>
-    <textarea id="text_to_type"  style="width:600;height:600;"></textarea> 
+    <textarea id="text_typed"  style="width:600;height:600;"></textarea> 
 
 
 </body>
