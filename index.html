@@ -1,0 +1,45 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <title>Typeracer</title>
+
+
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.js"></script> 
+  <script src="http://malsup.github.com/jquery.form.js"></script> 
+
+  <script> 
+      // wait for the DOM to be loaded 
+      $(document).ready(function() { 
+        $("#textarea").on('change keyup paste', function() {
+            
+            $.ajax({
+  url: '/echo/html/',
+  type: 'PUT',
+  data: "name=John&location=Boston",
+  success: function(data) {
+    alert('Load was performed.');
+  }
+});
+});
+      }); 
+  </script> 
+</head>
+
+<body>
+        Status: 
+        <div id="text_to_type" style="width:600;height:600;">
+            The quick brown fox jumps over the lazy dog.
+        </div>
+    <form id="myForm" action="comment.php" method="post"> 
+        Name: <input type="text" name="name" />
+        <br /><input type="submit" value="Submit Comment" />
+    </form>
+    <h2>Type text here</h2>
+    <textarea id="text_to_type"  style="width:600;height:600;"></textarea> 
+
+
+</body>
+</html>
