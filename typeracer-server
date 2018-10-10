@@ -5,31 +5,37 @@ from flask import request
 from flask_restful import Resource, Api
 import datetime
 
+from thesestrings import current_strings
+
 current_attempts = {}
+
+state = {}
 
 finished_users = {}
 
 app = Flask(__name__)
 api = Api(app)
 
-current_string = "this is a string"
-
 class TyperacerGetCurrentString(Resource):
     def get(self):
+        current_string = next(current_strings, None)
+
         user = request.args.get('user', '')
         users = current_attempts.get(current_string, {})
         if user in users:
             return {'current_string': 'no thanks'}
         users[user] = datetime.datetime.now()
         current_attempts[current_string] = users
-        print(current_attempts)
+
+        state[user] = current_string
+
         return {'current_string': current_string}
 
 class TyperacerCheckString(Resource):
     def put(self):
         submission = request.form['submission']
         print(submission)
-        if submission == current_string:
+        if submission == state[user]:
             return {'success': True}
         return {'success': False}
 
