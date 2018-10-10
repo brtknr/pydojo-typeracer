@@ -17,11 +17,11 @@
             text_typed = $('#text_typed').val()
 
             $.ajax({
-  url: 'http://localhost:5000/check-string/',
+  url: 'http://typeracer.kgz.sh/check-string',
   type: 'PUT',
-  data: JSON.stringify({'submission': text_typed}),
+  data: "submission="+text_typed,
   success: function(data) {
-    alert('Load was performed.');
+    console.log(data);
   }
 });
 });
@@ -34,7 +34,7 @@
         <div id="text_to_type" style="width:600;height:600;">
             The quick brown fox jumps over the lazy dog.
         </div>
-    <form id="myForm" action="comment.php" method="post"> 
+    <form id="myForm" method="post"> 
         Name: <input type="text" name="name" />
         <br /><input type="submit" value="Submit Comment" />
     </form>
