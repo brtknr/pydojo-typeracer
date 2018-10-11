@@ -17,7 +17,11 @@
             text_typed = $('#text_typed').val()
 
             $.ajax({
+<<<<<<< Updated upstream
   url: 'http://typeracer.kgz.sh/check-string',
+=======
+  url: 'http://typeracer.kgz.sh/check-string/',
+>>>>>>> Stashed changes
   type: 'PUT',
   data: "submission="+text_typed,
   success: function(data) {

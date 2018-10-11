@@ -14,9 +14,12 @@ $ typeracer localhost
 
 - each client sent string
 
-    - $ curl "localhost:5000/current-string?user=louis"
+    $ curl "typeracer.kgz.sh/current-string?user=tesdfffgfd"
+
 - at each char
-    - $ curl http://localhost:5000/check-string -d "submission=this is a string" -X PUT
+
+    $ curl "typeracer.kgz.sh/check-string?user=louis" -d "submission=this is a string" -X PUT
+
 - server sends back msg if correct
 - rank users by time
 
