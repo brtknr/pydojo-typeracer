@@ -4,14 +4,13 @@ from flask import Flask
 from flask import request
 from flask_restful import Resource, Api
 import datetime
+from distance import levenshtein
 
-from reader import current_strings
+from reader import string_generator
 
-current_attempts = {}
-
-state = {}
-
-finished_users = {}
+attempts = {}
+states = {}
+strings = {}
 
 app = Flask(__name__, static_url_path='/')
 api = Api(app)
@@ -20,32 +19,44 @@ api = Api(app)
 def root():
     return app.send_static_file('index.html')
 
-class TyperacerGetCurrentString(Resource):
+
+
+class FetchString(Resource):
     def get(self):
-        current_string = next(current_strings, None)
+        user = request.args.get('user', None)
+        reset = int(request.args.get('reset', 0))
+        print(reset)
+        if reset and user in states:
+            del states[user]
+        if user:
+            states[user] = current_state = states.get(user, string_generator())
+            strings[user] = current_string = next(current_state, None)
+            if current_string:
+                users = attempts.get(current_string, {})
+                users[user] = datetime.datetime.now()
+                attempts[current_string] = users
+                return {'current_string': current_string}
+            else:
+                return {'current_string': 'no more challenges'}
+        return {'current_string': 'no user specified'}
 
-        user = request.args.get('user', '')
-        users = current_attempts.get(current_string, {})
-        if user in users:
-            return {'current_string': 'no thanks'}
-        users[user] = datetime.datetime.now()
-        current_attempts[current_string] = users
-
-        state[user] = current_string
-
-        return {'current_string': current_string}
-
-class TyperacerCheckString(Resource):
+class CheckString(Resource):
     def put(self):
-        user = request.form['user']
-        submission = request.form['submission']
-        print(submission)
-        if submission == state.get(user, None):
-            return {'success': True}
-        return {'success': False}
+        user = request.form.get('user', None)
+        submission = request.form.get('submission', None)
+        target = strings.get(user, None)
+        print(user,submission,target)
+        if target:
+            score = levenshtein(submission,target)
+            if submission == target:
+                return {'response': 'correct'}
+            else:
+                return {'response': score}
+        else:
+            return {'response': 'unregistered'}
 
-api.add_resource(TyperacerGetCurrentString, '/current-string')
-api.add_resource(TyperacerCheckString, '/check-string')
+api.add_resource(FetchString, '/fetch-string')
+api.add_resource(CheckString, '/check-string')
 
 if __name__ == '__main__':
     app.run(debug=True)

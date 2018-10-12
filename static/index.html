@@ -12,34 +12,58 @@
 
   <script> 
       // wait for the DOM to be loaded 
-      $(document).ready(function() { 
-        $("#text_typed").on('change keyup paste', function() {
-            text_typed = $('#text_typed').val()
-            $.ajax({
-  url: 'http://typeracer.kgz.sh/check-string',
-  type: 'PUT',
-		    data: {user: 'bharat',submission: text_typed},
-  success: function(data) {
-    console.log(data);
-  }
-});
-});
-      }); 
+	$(document).ready(function() { 
+		$("#text_typed").on('change keyup paste', function() {
+			user = $('#user').val()
+			text_typed = $('#text_typed').val()
+			$.ajax({
+				url: 'http://typeracer.kgz.sh/check-string',
+				type: 'PUT',
+				data: {
+					user: user,
+					submission: text_typed
+				},
+				success: function(data) {
+					console.log(data);
+				}
+			});
+		});
+		function fetchString(reset) {
+			user = $('#user').val()
+			console.log(user)
+			$.ajax({
+				url: 'http://typeracer.kgz.sh/fetch-string',
+				type: 'GET',
+				data: {
+					user: user,
+					reset: reset
+				},
+				success: function(data) {
+					current_string = data.current_string
+			    		$('#text_to_type').html(current_string);
+				}
+			});
+		}
+		$("#start").on('click', function() {
+			fetchString(1);
+		});
+		$("#text_typed").keypress(function(e) {
+			if (e.which == 13) {
+				fetchString(0);
+				$("#text_typed").val('')
+			}
+		});
+	}); 
   </script> 
 </head>
 
 <body>
-        Status: 
-        <div id="text_to_type" style="width:600;height:600;">
-            The quick brown fox jumps over the lazy dog.
-        </div>
-    <form id="myForm" method="post"> 
-        Name: <input type="text" name="name" />
-        <br /><input type="submit" value="Submit Comment" />
-    </form>
-    <h2>Type text here</h2>
-    <textarea id="text_typed"  style="width:600;height:600;"></textarea> 
-
-
+	<h2>Enter your name</h2>
+	<input type="text" id="user"></input> 
+	<button type="submit" id="start">Go</button> 
+	<h2>Text to type</h2>
+	<div id="text_to_type">The quick brown fox jumps over the lazy dog.</div>
+	<h2>Type text here</h2>
+	<input type="text" id="text_typed" style="width:100%"></input> 
 </body>
 </html>
