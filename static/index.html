@@ -30,7 +30,6 @@
 		});
 		function fetchString(reset) {
 			user = $('#user').val()
-			console.log(user)
 			$.ajax({
 				url: 'http://typeracer.kgz.sh/fetch-string',
 				type: 'GET',
@@ -39,6 +38,7 @@
 					reset: reset
 				},
 				success: function(data) {
+					console.log(data)
 					current_string = data.current_string
 			    		$('#text_to_type').html(current_string);
 				}

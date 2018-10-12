@@ -3,14 +3,14 @@
 from flask import Flask
 from flask import request
 from flask_restful import Resource, Api
-import datetime
 from distance import levenshtein
+import time
 
 from reader import string_generator
 
-attempts = {}
 states = {}
 strings = {}
+attempts = {}
 
 app = Flask(__name__, static_url_path='/')
 api = Api(app)
@@ -25,17 +25,36 @@ class FetchString(Resource):
     def get(self):
         user = request.args.get('user', None)
         reset = int(request.args.get('reset', 0))
-        print(reset)
+        last_score = None
+        last_delta = None
         if reset and user in states:
             del states[user]
+            del strings[user]
         if user:
+            last_string = strings.get(user, None)
+            if last_string:
+                user_data = attempts.get(last_string)
+                last_delta = time.time() - user_data[user].get('start')
+                edit_distance = min(len(last_string), levenshtein(user_data[user].get('submission'), last_string))
+                strokes = max(len(last_string), user_data[user].get('strokes'))
+                last_score = strokes - edit_distance
+                user_data[user].update({
+                    'delta': last_delta,
+                    'score': last_score,
+                })
+
             states[user] = current_state = states.get(user, string_generator())
             strings[user] = current_string = next(current_state, None)
             if current_string:
-                users = attempts.get(current_string, {})
-                users[user] = datetime.datetime.now()
-                attempts[current_string] = users
-                return {'current_string': current_string}
+                user_data = attempts.get(current_string, {})
+                user_data[user] = {'start': time.time()}
+                attempts[current_string] = user_data
+                return {
+                    'current_string': current_string,
+                    'last_string': last_string,
+                    'last_score': last_score,
+                    'last_delta': last_delta,
+                }
             else:
                 return {'current_string': 'no more challenges'}
         return {'current_string': 'no user specified'}
@@ -44,14 +63,16 @@ class CheckString(Resource):
     def put(self):
         user = request.form.get('user', None)
         submission = request.form.get('submission', None)
-        target = strings.get(user, None)
-        print(user,submission,target)
-        if target:
-            score = levenshtein(submission,target)
-            if submission == target:
-                return {'response': 'correct'}
-            else:
-                return {'response': score}
+        current_string = strings.get(user, None)
+        print(user,submission,current_string)
+        if current_string:
+            user_data = attempts.get(current_string)
+            strokes = user_data[user].get('strokes', 0) +1
+            user_data[user].update({
+                'strokes': strokes,
+                'submission': submission,
+            })
+            return {'response': strokes}
         else:
             return {'response': 'unregistered'}
 
