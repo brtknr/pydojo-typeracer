@@ -4,6 +4,7 @@ from flask import Flask
 from flask import request
 from flask_restful import Resource, Api
 from distance import levenshtein
+from scipy.stats import percentileofscore
 import time
 
 from reader import string_generator
@@ -11,6 +12,7 @@ from reader import string_generator
 states = {}
 strings = {}
 attempts = {}
+norm_scores = {}
 
 app = Flask(__name__, static_url_path='/')
 api = Api(app)
@@ -19,14 +21,14 @@ api = Api(app)
 def root():
     return app.send_static_file('index.html')
 
-
-
 class FetchString(Resource):
     def get(self):
         user = request.args.get('user', None)
         reset = int(request.args.get('reset', 0))
         last_score = None
         last_delta = None
+        last_norm_score = None
+        last_rank = None
         if reset and user in states:
             del states[user]
             del strings[user]
@@ -35,14 +37,14 @@ class FetchString(Resource):
             if last_string:
                 user_data = attempts.get(last_string)
                 last_delta = time.time() - user_data[user].get('start')
-                edit_distance = min(len(last_string), levenshtein(user_data[user].get('submission'), last_string))
                 strokes = max(len(last_string), user_data[user].get('strokes'))
-                last_score = strokes - edit_distance
-                user_data[user].update({
-                    'delta': last_delta,
-                    'score': last_score,
-                })
-
+                mistakes = min(len(last_string), levenshtein(user_data[user].get('submission'), last_string))
+                last_score = strokes - mistakes
+                last_norm_score = last_score/last_delta
+                norm_scores_str = norm_scores.get(last_string, [])
+                norm_scores_str.append(last_norm_score)
+                last_rank = percentileofscore(norm_scores_str, last_norm_score)
+                norm_scores[last_string] = norm_scores_str
             states[user] = current_state = states.get(user, string_generator())
             strings[user] = current_string = next(current_state, None)
             if current_string:
@@ -54,6 +56,8 @@ class FetchString(Resource):
                     'last_string': last_string,
                     'last_score': last_score,
                     'last_delta': last_delta,
+                    'last_norm_score': last_norm_score,
+                    'last_rank': last_rank,
                 }
             else:
                 return {'current_string': 'no more challenges'}
